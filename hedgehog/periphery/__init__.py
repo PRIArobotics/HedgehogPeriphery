@@ -7,41 +7,6 @@ BOOT0_PIN = 31
 try:
     from RPi import GPIO as _GPIO
 
-    _GPIO.setmode(_GPIO.BOARD)
-
-    PLATFORM = RASPBERRY_PI_3B
-    SERIAL = '/dev/ttyS0'
-
-
-    class GPIO:
-        HIGH = _GPIO.HIGH
-        LOW = _GPIO.LOW
-
-        OUT = _GPIO.OUT
-        IN = _GPIO.IN
-
-        PUD_OFF = _GPIO.PUD_OFF
-        PUD_UP = _GPIO.PUD_UP
-        PUD_DOWN = _GPIO.PUD_DOWN
-
-        def __init__(self, channel):
-            self.channel = channel
-
-        @classmethod
-        def cleanup(cls):
-            _GPIO.cleanup()
-
-        def setup(self, direction, pull_up_down=PUD_OFF, initial=None):
-            if initial is None:
-                _GPIO.setup(self.channel, direction, pull_up_down)
-            else:
-                _GPIO.setup(self.channel, direction, pull_up_down, initial)
-
-        def set(self, value):
-            _GPIO.output(self.channel, value)
-
-        def get(self):
-            _GPIO.input(self.channel)
 except RuntimeError:
     _pin_map = {
         29: 'PA7',
@@ -151,3 +116,40 @@ except RuntimeError:
             :return: the string content of the file
             """
             return self._read(self._pin_file(self.pin, file))
+
+else:
+    _GPIO.setmode(_GPIO.BOARD)
+
+    PLATFORM = RASPBERRY_PI_3B
+    SERIAL = '/dev/ttyS0'
+
+
+    class GPIO:
+        HIGH = _GPIO.HIGH
+        LOW = _GPIO.LOW
+
+        OUT = _GPIO.OUT
+        IN = _GPIO.IN
+
+        PUD_OFF = _GPIO.PUD_OFF
+        PUD_UP = _GPIO.PUD_UP
+        PUD_DOWN = _GPIO.PUD_DOWN
+
+        def __init__(self, channel):
+            self.channel = channel
+
+        @classmethod
+        def cleanup(cls):
+            _GPIO.cleanup()
+
+        def setup(self, direction, pull_up_down=PUD_OFF, initial=None):
+            if initial is None:
+                _GPIO.setup(self.channel, direction, pull_up_down)
+            else:
+                _GPIO.setup(self.channel, direction, pull_up_down, initial)
+
+        def set(self, value):
+            _GPIO.output(self.channel, value)
+
+        def get(self):
+            _GPIO.input(self.channel)
