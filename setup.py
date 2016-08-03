@@ -18,11 +18,11 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='hedgehog-periphery',
+    name='hedgehog-platform',
     version='0.0.0',
-    description='Hedgehog Periphery abstractions',
+    description='Hedgehog Platform abstractions',
     long_description=long_description,
-    url="https://github.com/PRIArobotics/HedgehogPeriphery",
+    url="https://github.com/PRIArobotics/HedgehogPlatform",
     author="Clemens Koza",
     author_email="koza@pria.at",
     license="AGPLv3+",
