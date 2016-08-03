@@ -1,21 +1,78 @@
+import time
+
 RASPBERRY_PI_3B = 'Raspberry Pi 3 Model B'
 ORANGE_PI_2 = 'Orange Pi 2'
+
+try:
+    from RPi import GPIO as _GPIO
+except (ImportError, RuntimeError):
+    PLATFORM = ORANGE_PI_2
+else:
+    PLATFORM = RASPBERRY_PI_3B
+
+try:
+    # don't fail if you work without PySerial (e.g. emulator)
+    import serial
+except ImportError:
+    pass
+else:
+    SERIAL_PARAMS = dict(
+        baudrate=115200,
+        bytesize=serial.EIGHTBITS,
+        parity=serial.PARITY_EVEN,
+        stopbits=serial.STOPBITS_ONE,
+        timeout=5,
+        xonxoff=False,
+        rtscts=False,
+        writeTimeout=None,
+        dsrdtr=False,
+        interCharTimeout=None,
+    )
 
 NRST_PIN = 29
 BOOT0_PIN = 31
 
-try:
-    from RPi import GPIO as _GPIO
+if PLATFORM == RASPBERRY_PI_3B:
+    SERIAL = '/dev/ttyS0'
 
-except RuntimeError:
+    _GPIO.setmode(_GPIO.BOARD)
+
+    class GPIO:
+        HIGH = _GPIO.HIGH
+        LOW = _GPIO.LOW
+
+        OUT = _GPIO.OUT
+        IN = _GPIO.IN
+
+        PUD_OFF = _GPIO.PUD_OFF
+        PUD_UP = _GPIO.PUD_UP
+        PUD_DOWN = _GPIO.PUD_DOWN
+
+        def __init__(self, channel):
+            self.channel = channel
+
+        @classmethod
+        def cleanup(cls):
+            _GPIO.cleanup()
+
+        def setup(self, direction, pull_up_down=PUD_OFF, initial=None):
+            if initial is None:
+                _GPIO.setup(self.channel, direction, pull_up_down)
+            else:
+                _GPIO.setup(self.channel, direction, pull_up_down, initial)
+
+        def set(self, value):
+            _GPIO.output(self.channel, value)
+
+        def get(self):
+            _GPIO.input(self.channel)
+elif PLATFORM == ORANGE_PI_2:
+    SERIAL = '/dev/ttyS3'
+
     _pin_map = {
         29: 'PA7',
         31: 'PA8',
     }
-
-    PLATFORM = ORANGE_PI_2
-    SERIAL = '/dev/ttyS3'
-
 
     class GPIO:
         HIGH = 1
@@ -116,40 +173,42 @@ except RuntimeError:
             :return: the string content of the file
             """
             return self._read(self._pin_file(self.pin, file))
-
 else:
-    _GPIO.setmode(_GPIO.BOARD)
-
-    PLATFORM = RASPBERRY_PI_3B
-    SERIAL = '/dev/ttyS0'
+    assert False
 
 
-    class GPIO:
-        HIGH = _GPIO.HIGH
-        LOW = _GPIO.LOW
+class Controller:
+    def __init__(self):
+        self.nrst = GPIO(NRST_PIN)
+        self.nrst.setup(GPIO.OUT)
 
-        OUT = _GPIO.OUT
-        IN = _GPIO.IN
+        self.boot0 = GPIO(BOOT0_PIN)
+        self.boot0.setup(GPIO.OUT)
 
-        PUD_OFF = _GPIO.PUD_OFF
-        PUD_UP = _GPIO.PUD_UP
-        PUD_DOWN = _GPIO.PUD_DOWN
+        self.serial = serial.Serial(port=SERIAL, **SERIAL_PARAMS)
 
-        def __init__(self, channel):
-            self.channel = channel
+    def reset(self, on=False, boot0=False):
+        """
+        Resets the connected hardware controller. If `on` is false, the controller will stay in the reset state.
+        Otherwise, the controller will subsequently restart. In that case, `boot0` controls whether the controller runs
+        the bootloader, or the user's program; and the controller's serial connection is flushed, so that no garbage
+        from before the reset is subsequently read.
 
-        @classmethod
-        def cleanup(cls):
-            _GPIO.cleanup()
+        Keep in mind that the `boot0` pin is set even if `not on`.
 
-        def setup(self, direction, pull_up_down=PUD_OFF, initial=None):
-            if initial is None:
-                _GPIO.setup(self.channel, direction, pull_up_down)
-            else:
-                _GPIO.setup(self.channel, direction, pull_up_down, initial)
+        :param on: Whether to turn the controller on
+        :param boot0: Whether to start into the bootloader
+        """
+        self.boot0.set(boot0)
+        self.nrst.set(False)
+        time.sleep(0.1)
+        if on:
+            self.nrst.set(True)
+            time.sleep(0.5)
 
-        def set(self, value):
-            _GPIO.output(self.channel, value)
+            self.serial.flushInput()
+            self.serial.flushOutput()
 
-        def get(self):
-            _GPIO.input(self.channel)
+    def cleanup(self):
+        self.serial.close()
+        GPIO.cleanup()
