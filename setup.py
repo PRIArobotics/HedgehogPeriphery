@@ -19,7 +19,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='hedgehog-platform',
-    version='0.1.0',
+    version='0.1.1',
     description='Hedgehog Platform abstractions',
     long_description=long_description,
     url="https://github.com/PRIArobotics/HedgehogPlatform",
@@ -46,12 +46,12 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['RPi.GPIO', 'pyserial'],
+    install_requires=[],
 
     # You can install these using the following syntax, for example:
     # $ pip install -e .[dev,test]
     extras_require={
-        # 'dev': ['invoke'],
+        'raspberry': ['RPi.GPIO', 'pyserial'],
     },
 
     # package_data={
