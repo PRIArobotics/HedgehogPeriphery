@@ -9,6 +9,7 @@ python:
 
 # install other libraries using pip
 install:
+    - pip install -U setuptools
     - pip install -Ue .
 
 # command to run tests
