@@ -19,9 +19,9 @@ else:
     SERIAL_PARAMS = dict(
         baudrate=115200,
         bytesize=serial.EIGHTBITS,
-        parity=serial.PARITY_EVEN,
+        parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
-        timeout=5,
+        timeout=0.5,
         xonxoff=False,
         rtscts=False,
         writeTimeout=None,
