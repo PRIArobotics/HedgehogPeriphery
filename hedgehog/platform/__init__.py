@@ -21,7 +21,7 @@ else:
         bytesize=serial.EIGHTBITS,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
-        timeout=5,
+        timeout=0.5,
         xonxoff=False,
         rtscts=False,
         writeTimeout=None,
